@@ -21,7 +21,7 @@ const containerStyle = {
   alignItems: 'center',
 }
 
-interface IProps {
+export interface IPanelProps {
   color: string
   rectCount: number
   setColor: Dispatch<SetStateAction<string>>
@@ -29,21 +29,21 @@ interface IProps {
   clearRects: () => void
 }
 
-const ControlPanel: FC<IProps> = ({ color, rectCount, setColor, clearRects, setDrawing }) => {
-  const [action, setAction] = useState('add')
+const ControlPanel: FC<IPanelProps> = ({ color, rectCount, setColor, clearRects, setDrawing }) => {
+  const [action, setAction] = useState('draw')
   const handleColorSelect = (e: ColorResult) => {
     setColor(e.hex)
   }
   const handleActionSelector = (event: MouseEvent<HTMLElement>) => {
     const { value } = event.currentTarget as HTMLInputElement
     setAction(value)
-    setDrawing(value === 'add')
+    setDrawing(value === 'draw')
   }
   return (
     <Box sx={panelStyle}>
       <Box sx={containerStyle}>
         <ToggleButtonGroup value={action} exclusive onChange={handleActionSelector}>
-          <ToggleButton value="add">
+          <ToggleButton value="draw">
             <AddBoxIcon />
           </ToggleButton>
           <ToggleButton value="remove">
@@ -58,7 +58,9 @@ const ControlPanel: FC<IProps> = ({ color, rectCount, setColor, clearRects, setD
         <Typography sx={{ mb: 2, fontFamily: 'Montserrat' }}>
           {rectCount} rectangle{rectCount === 1 ? '' : 's'}
         </Typography>
-        <Button onClick={clearRects}>Clear</Button>
+        <Button id="clear-rects" onClick={clearRects}>
+          Clear
+        </Button>
       </Box>
     </Box>
   )

@@ -10,14 +10,14 @@ const containerStyle: SxProps<Theme> = {
   width: '70%',
 }
 
-interface IProps {
-  readonly rects: IReactRect[]
+export interface IStageProps {
+  readonly displayedRects: IReactRect[]
   handleMouseDown: (event: KonvaEventObject<globalThis.MouseEvent>) => void
   handleMouseUp: (event: KonvaEventObject<globalThis.MouseEvent>) => void
   handleMouseMove: (event: KonvaEventObject<globalThis.MouseEvent>) => void
 }
 
-const DrawingSpace: FC<IProps> = ({ rects, handleMouseDown, handleMouseMove, handleMouseUp }) => {
+const DrawingStage: FC<IStageProps> = ({ displayedRects, handleMouseDown, handleMouseMove, handleMouseUp }) => {
   const [canvasHeight, setCanvasHeight] = useState(0)
   const [canvasWidth, setCanvasWidth] = useState(0)
 
@@ -36,7 +36,7 @@ const DrawingSpace: FC<IProps> = ({ rects, handleMouseDown, handleMouseMove, han
         onMouseMove={handleMouseMove}
       >
         <Layer>
-          {rects.map((rect) => {
+          {displayedRects.map((rect) => {
             return (
               <Rect
                 key={rect.id}
@@ -55,4 +55,4 @@ const DrawingSpace: FC<IProps> = ({ rects, handleMouseDown, handleMouseMove, han
   )
 }
 
-export default DrawingSpace
+export default DrawingStage

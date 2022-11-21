@@ -1,7 +1,7 @@
 import { Container, CssBaseline, Paper, SxProps, Theme } from '@mui/material'
 import { FC } from 'react'
 import ControlPanel from './components/ControlPanel'
-import DrawingSpace from './components/DrawingSpace'
+import DrawingStage from './components/DrawingStage'
 import { useCanvas } from './hooks/useCanvas'
 
 const containerStyle: SxProps<Theme> = {
@@ -11,26 +11,14 @@ const containerStyle: SxProps<Theme> = {
 }
 
 const App: FC = () => {
-  const { rects, color, rectCount, handleMouseDown, handleMouseMove, handleMouseUp, setColor, clearRects, setDrawing } =
-    useCanvas()
+  const { drawToolkit, panelToolkit } = useCanvas()
 
   return (
     <Container maxWidth="md">
       <CssBaseline />
       <Paper elevation={6} sx={containerStyle}>
-        <ControlPanel
-          color={color}
-          rectCount={rectCount}
-          setColor={setColor}
-          clearRects={clearRects}
-          setDrawing={setDrawing}
-        />
-        <DrawingSpace
-          rects={rects}
-          handleMouseDown={handleMouseDown}
-          handleMouseMove={handleMouseMove}
-          handleMouseUp={handleMouseUp}
-        />
+        <ControlPanel {...panelToolkit} />
+        <DrawingStage {...drawToolkit} />
       </Paper>
     </Container>
   )

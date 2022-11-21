@@ -2,78 +2,69 @@ import { KonvaEventObject } from 'konva/lib/Node'
 import { IRect, Vector2d } from 'konva/lib/types'
 import { useState } from 'react'
 import { v4 } from 'uuid'
+import { INITIAL_COLOR } from '../utils/constants'
 import { findRectCollision } from '../utils/helpers'
 
 export interface IReactRect extends IRect {
   id: string
   color: string
+  timestamp: number
 }
 
 export const useCanvas = () => {
-  const [previousRects, setPreviousRects] = useState<IReactRect[]>([])
-  const [currentRect, setCurrentRect] = useState<IReactRect[]>([])
-  const [color, setColor] = useState('#000000')
+  const [rects, setRects] = useState<IReactRect[]>([])
+  const [currentRect, setCurrentRect] = useState<IReactRect | null>(null)
+  const [color, setColor] = useState<string>(INITIAL_COLOR)
   const [drawing, setDrawing] = useState(true)
 
   const handleMouseDown = (event: KonvaEventObject<globalThis.MouseEvent>) => {
     const { x, y } = event.currentTarget.getStage()?.getPointerPosition() as Vector2d
     if (drawing) {
-      if (currentRect.length === 0) {
-        setCurrentRect([{ x, y, width: 0, height: 0, id: 'current', color }])
+      if (!currentRect) {
+        setCurrentRect({ x, y, width: 0, height: 0, id: v4(), color, timestamp: Date.now() })
       }
     } else {
-      const foundRect = previousRects.find((rect) => findRectCollision(rect, x, y))
-      if (foundRect) {
-        const filteredRects = previousRects.filter((rect) => rect.id !== foundRect.id)
-        setPreviousRects(filteredRects)
+      const collisionedRects = rects
+        .filter((rect) => findRectCollision(rect, x, y))
+        .sort((a, b) => b.timestamp - a.timestamp)
+      if (collisionedRects.length) {
+        const { id } = collisionedRects[0] // latest rect
+        const filteredRects = rects.filter((rect) => rect.id !== id)
+        setRects(filteredRects)
       }
-    }
-  }
-
-  const handleMouseUp = (event: KonvaEventObject<globalThis.MouseEvent>) => {
-    if (currentRect.length === 1 && drawing) {
-      const { x, y } = event.target.getStage()?.getPointerPosition() as Vector2d
-      const sx = currentRect[0].x
-      const sy = currentRect[0].y
-      const finishedRect: IReactRect = {
-        x: sx,
-        y: sy,
-        width: x - sx,
-        height: y - sy,
-        id: v4(),
-        color,
-      }
-      previousRects.push(finishedRect)
-      setCurrentRect([])
-      setPreviousRects(previousRects)
     }
   }
 
   const handleMouseMove = (event: KonvaEventObject<globalThis.MouseEvent>) => {
-    if (currentRect.length === 1 && drawing) {
-      const sx = currentRect[0].x
-      const sy = currentRect[0].y
+    if (currentRect) {
       const { x, y } = event.target.getStage()?.getPointerPosition() as Vector2d
-      setCurrentRect([
-        {
-          x: sx,
-          y: sy,
-          width: x - sx,
-          height: y - sy,
-          color,
-          id: 'current',
-        },
-      ])
+      setCurrentRect((prev) => ({ ...prev, width: x - currentRect.x, height: y - currentRect.y } as IReactRect))
+    }
+  }
+
+  const handleMouseUp = (event: KonvaEventObject<globalThis.MouseEvent>) => {
+    if (currentRect) {
+      const { x, y } = event.target.getStage()?.getPointerPosition() as Vector2d
+      setCurrentRect((prev) => ({ ...prev, width: x - currentRect.x, height: y - currentRect.y } as IReactRect))
+      setRects((prev) => [...prev, currentRect])
+      setCurrentRect(null)
     }
   }
 
   const clearRects = () => {
-    setCurrentRect([])
-    setPreviousRects([])
+    setCurrentRect(null)
+    setRects([])
   }
 
-  const rects = [...previousRects, ...currentRect]
-  const rectCount = rects.length
+  const displayedRects = [...rects]
+  if (currentRect) displayedRects.push(currentRect)
+  const rectCount = displayedRects.length
 
-  return { rects, color, rectCount, setColor, handleMouseDown, handleMouseMove, handleMouseUp, clearRects, setDrawing }
+  const drawToolkit = { displayedRects, handleMouseDown, handleMouseMove, handleMouseUp }
+  const panelToolkit = { color, rectCount, setColor, clearRects, setDrawing }
+
+  return {
+    drawToolkit,
+    panelToolkit,
+  }
 }
